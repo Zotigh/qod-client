@@ -4,15 +4,19 @@ import android.animation.AnimatorInflater;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.TextView;
 import edu.cnm.deepdive.qod.R;
 import edu.cnm.deepdive.qod.model.Source;
+import edu.cnm.deepdive.qod.service.GoogleSignInService;
 import edu.cnm.deepdive.qod.service.QodService.GetQodTask;
 
 public class MainActivity extends AppCompatActivity {
@@ -20,6 +24,9 @@ public class MainActivity extends AppCompatActivity {
   private ShakeListener listener;
   private TextView quoteText;
   private TextView sourceName;
+
+
+
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
             builder.append("; ");
           }
           if (builder.length() > 0) {
-          sourceName.setText(builder.substring(0, builder.length() - 2));
+            sourceName.setText(builder.substring(0, builder.length() - 2));
           } else {
             sourceName.setText("");
           }
@@ -115,5 +122,31 @@ public class MainActivity extends AppCompatActivity {
     }
 
   }
-
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    // Inflate the menu; this adds items to the action bar if it is present.
+    getMenuInflater().inflate(R.menu.menu_options, menu);
+    return true;
+  }
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    boolean handled = true;
+    switch (item.getItemId()) {
+      case R.id.sign_out:
+        signOut();
+        break;
+      default:
+        handled = super.onOptionsItemSelected(item);
+    }
+    return handled;
+  }
+  private void signOut() {
+    GoogleSignInService.getInstance().getClient().signOut()
+        .addOnCompleteListener(this, (task -> {
+          GoogleSignInService.getInstance().setAccount(null);
+          Intent intent = new Intent(this, LoginActivity.class);
+          intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+          startActivity(intent);
+        }));
+  }
 }
